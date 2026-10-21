@@ -82,4 +82,4 @@ Research / portfolio project, for non-commercial academic use. SEED dataset usag
 
 ---
 
-*A personal research project exploring low-channel EEG emotion recognition for wearable applications.*
+*A personal research project exploring low-channel EEG emotion recognition for wearable applications by Yannan Sun.*
