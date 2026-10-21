@@ -1,0 +1,9 @@
+Research / portfolio project — for non-commercial academic use.
+
+This repository contains original analysis code and documentation.
+It builds on the LibEER framework (https://github.com/XJTU-EEG/LibEER)
+and the SEED dataset (BCMI Lab, Shanghai Jiao Tong University).
+
+The SEED dataset is subject to its own license (academic, non-commercial);
+users must request access from BCMI Lab directly. No SEED data is included
+in this repository.

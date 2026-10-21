@@ -1,0 +1,8 @@
+channels,selection,accuracy_mean,accuracy_std,note
+62,full,0.7978,0.1115,baseline
+32,uniform,0.7882,0.0995,
+16,uniform,0.7689,0.1141,
+8,uniform,0.7692,0.1298,
+4,uniform,0.7475,0.1330,
+2,frontal+temporal (FP1+T8),0.7273,0.1385,good placement
+2,occipital (O1+O2),0.6160,0.1362,poor placement control
