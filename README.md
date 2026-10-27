@@ -6,7 +6,7 @@
 >
 > Using the SEED dataset, this project shows that **2 electrodes retain ~75% of three-class emotion accuracy**, identifies the **optimal 2-electrode pair (F8 + T7)** through an exhaustive search, and demonstrates the result in a **live emotion-monitoring demo**.
 
-**🔴 [Live Demo →](https://YOURNAME.github.io/eeg-emotion-minimal/demo/)** · 实时情绪监测演示
+**🔴 [Live Demo →](https://ksun10071991-boop.github.io/eeg-emotion-channel-reduction/demo/)** · 实时情绪监测演示
 
 ---
 
@@ -49,7 +49,7 @@ Two *well-placed* channels (74.7%) beat two *poorly-placed* ones (occipital, 61.
 
 A browser-based **real-time emotion monitor** that streams real SEED EEG segments through the 2-channel model and outputs emotion predictions segment-by-segment, with instant vs. temporally-smoothed (5-segment majority vote) output and ground-truth comparison.
 
-👉 **[Open the live demo](https://YOURNAME.github.io/eeg-emotion-minimal/demo/)**
+👉 **[Open the live demo](https://ksun10071991-boop.github.io/eeg-emotion-channel-reduction/demo/)**
 
 
 ## Results Summary | 结果汇总
