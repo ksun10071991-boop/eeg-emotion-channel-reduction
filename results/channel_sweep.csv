@@ -1,0 +1,9 @@
+channels,selection,accuracy,note
+62,full,0.7978,baseline
+32,uniform,0.7882,
+16,uniform,0.7689,
+8,uniform,0.7692,
+4,uniform,0.7475,
+2,best (F8+T7),0.7473,optimal pair found by search
+2,FP1+T8,0.7273,
+2,occipital (O1+O2),0.6160,poor placement control

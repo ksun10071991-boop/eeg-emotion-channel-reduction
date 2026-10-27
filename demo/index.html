@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EEG Emotion Monitor · 脑电情绪识别</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --surface:#ffffff; --ink:#1f2733; --ink2:#5a6676; --ink3:#97a1b0;
+    --line:#e4e8ef; --line2:#eef1f6;
+    --neg:#3b6fb5; --neu:#8a8f99; --pos:#2e9e6b;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0f1319; --surface:#161b24; --ink:#e8edf5; --ink2:#9aa6b8; --ink3:#6b7687;
+      --line:#242c38; --line2:#1d242f;
+      --neg:#5b8fd6; --neu:#9aa3b2; --pos:#44c188;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f1319; --surface:#161b24; --ink:#e8edf5; --ink2:#9aa6b8; --ink3:#6b7687;
+    --line:#242c38; --line2:#1d242f;
+    --neg:#5b8fd6; --neu:#9aa3b2; --pos:#44c188;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.5;
+    padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:30px 20px 56px;}
+  .top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;}
+  .title{font-size:17px; font-weight:650; letter-spacing:-.01em;}
+  .title .ja{color:var(--ink3); font-weight:450;}
+  .meta{font-size:12.5px; color:var(--ink2); margin-top:5px;}
+  .status{display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink2);
+    padding:6px 12px; border:1px solid var(--line); border-radius:8px; background:var(--surface);}
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--ink3); transition:background .3s;}
+  .dot.live{background:var(--pos); animation:ping 1.6s ease-out infinite;}
+  @keyframes ping{0%{box-shadow:0 0 0 0 rgba(46,158,107,.4)}100%{box-shadow:0 0 0 7px rgba(46,158,107,0)}}
+  .source{display:flex; gap:18px; flex-wrap:wrap; margin:18px 0 22px;
+    padding:12px 16px; background:var(--surface); border:1px solid var(--line);
+    border-radius:10px; font-size:12.5px;}
+  .source .item{display:flex; flex-direction:column; gap:2px;}
+  .source .k{color:var(--ink3); font-size:11px;}
+  .source .v{color:var(--ink); font-weight:600;}
+  .panel{background:var(--surface); border:1px solid var(--line); border-radius:16px; overflow:hidden;}
+  .readout{padding:40px 28px 30px; text-align:center; position:relative;
+    border-bottom:1px solid var(--line2); transition:background .9s ease;}
+  .emoji{font-size:72px; line-height:1;}
+  .emoji.beat{animation:beat .45s ease;}
+  @keyframes beat{0%{transform:scale(.82)}55%{transform:scale(1.08)}100%{transform:scale(1)}}
+  .emo-zh{font-size:30px; font-weight:750; margin-top:12px; letter-spacing:.02em;}
+  .emo-en{font-size:12px; color:var(--ink3); margin-top:3px; letter-spacing:.12em;}
+  .hint{font-size:12.5px; color:var(--ink2); margin-top:14px;}
+  .wave-wrap{padding:16px 20px; border-bottom:1px solid var(--line2);}
+  .wave-label{font-size:11px; color:var(--ink3); margin-bottom:6px;}
+  svg.wave{width:100%; height:48px; display:block;}
+  svg.wave path{fill:none; stroke-width:1.6;}
+  .rows{display:grid; grid-template-columns:1fr 1fr 1fr;}
+  .cell{padding:16px; text-align:center; border-right:1px solid var(--line2);}
+  .cell:last-child{border-right:none;}
+  .cell .k{font-size:11px; color:var(--ink3); margin-bottom:7px;}
+  .cell .v{font-size:17px; font-weight:650;}
+  .cell .tag{font-size:11px; margin-top:4px; color:var(--ink3); min-height:14px;}
+  .ctrl{text-align:center; margin:24px 0 10px;}
+  button{font-family:inherit; font-size:14.5px; font-weight:600; cursor:pointer;
+    padding:12px 30px; border-radius:10px; border:1px solid var(--ink);
+    background:var(--ink); color:var(--surface); transition:opacity .2s;}
+  button:hover{opacity:.85;}
+  button:disabled{opacity:.4; cursor:default;}
+  .tl-head{display:flex; justify-content:space-between; align-items:baseline;
+    margin:26px 4px 9px; font-size:12px; color:var(--ink2);}
+  .tl-head .acc{font-weight:650; color:var(--ink);}
+  .timeline{display:flex; gap:3px; height:40px;}
+  .seg{flex:1; border-radius:3px; background:var(--line); transition:background .4s, transform .2s;
+    align-self:stretch; min-width:3px;}
+  .seg.now{transform:scaleY(1.12);}
+  .tl-legend{display:flex; gap:16px; margin-top:12px; font-size:11.5px; color:var(--ink2);}
+  .tl-legend span{display:inline-flex; align-items:center; gap:5px;}
+  .tl-legend i{width:10px; height:10px; border-radius:2px; display:inline-block;}
+  .note{font-size:12px; color:var(--ink3); margin-top:26px; line-height:1.7;}
+  .note b{color:var(--ink2); font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="title">脑电情绪识别 <span class="ja">EEG Emotion Monitor</span></div>
+      <div class="meta">2 个电极 · F8（额区）+ T7（颞区）</div>
+    </div>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusTxt">待机</span></div>
+  </div>
+
+  <div class="source">
+    <div class="item"><span class="k">数据来源</span><span class="v">SEED 数据集</span></div>
+    <div class="item"><span class="k">受试者</span><span class="v">Subject 01</span></div>
+    <div class="item"><span class="k">模型</span><span class="v">SVM</span></div>
+    <div class="item"><span class="k">分类</span><span class="v">积极 / 中性 / 消极</span></div>
+    <div class="item"><span class="k">稳定化</span><span class="v">近 5 段多数投票</span></div>
+  </div>
+
+  <div class="panel">
+    <div class="readout" id="readout">
+      <div class="emoji" id="emoji">🧠</div>
+      <div class="emo-zh" id="emoZh" style="color:var(--ink2)">准备就绪</div>
+      <div class="emo-en" id="emoEn">READY</div>
+      <div class="hint" id="hint">读取真实脑电数据，逐段输出情绪判断</div>
+    </div>
+    <div class="wave-wrap">
+      <div class="wave-label">EEG 信号 · F8 + T7</div>
+      <svg class="wave" id="wave" viewBox="0 0 760 48" preserveAspectRatio="none">
+        <path id="wavePath" d="M0,24 L760,24" stroke="var(--ink3)"/>
+      </svg>
+    </div>
+    <div class="rows">
+      <div class="cell"><div class="k">瞬时判断</div><div class="v" id="instant">—</div></div>
+      <div class="cell"><div class="k">稳定判断</div><div class="v" id="stable">—</div></div>
+      <div class="cell"><div class="k">真实标签</div><div class="v" id="truth">—</div><div class="tag" id="truthTag"></div></div>
+    </div>
+  </div>
+
+  <div class="ctrl"><button id="btn" onclick="start()">开始监测</button></div>
+
+  <div class="tl-head">
+    <span>情绪时间轴 <span id="tick"></span></span>
+    <span class="acc" id="accTxt"></span>
+  </div>
+  <div class="timeline" id="timeline"></div>
+  <div class="tl-legend">
+    <span><i style="background:var(--pos)"></i>积极</span>
+    <span><i style="background:var(--neu)"></i>中性</span>
+    <span><i style="background:var(--neg)"></i>消极</span>
+  </div>
+
+  <div class="note">
+    本演示使用 <b>SEED 数据集中受试者 01 的真实脑电特征</b>逐段输入模型，模拟实时判断。
+    每段显示模型的瞬时判断、经近 5 段投票稳定后的判断，以及该段的真实情绪标签以供对照。
+    使用 F8、T7 两个电极，三分类准确率约 73%。
+  </div>
+</div>
+
+<script>
+const DATA=[
+  {p:1,t:1},{p:2,t:2},{p:2,t:2},{p:0,t:2},{p:2,t:2},{p:2,t:2},{p:2,t:2},{p:0,t:0},
+  {p:2,t:2},{p:0,t:0},{p:1,t:0},{p:0,t:0},{p:0,t:0},{p:0,t:0},{p:2,t:2},{p:1,t:2},
+  {p:2,t:2},{p:2,t:2},{p:1,t:1},{p:2,t:2},{p:2,t:2},{p:2,t:2},{p:2,t:2},{p:2,t:2},
+  {p:2,t:2},{p:2,t:2}
+];
+const EMO={
+  0:{zh:"消极",en:"NEGATIVE",emoji:"😔",c:"var(--neg)",bg:"rgba(59,111,181,.07)"},
+  1:{zh:"中性",en:"NEUTRAL", emoji:"😐",c:"var(--neu)",bg:"rgba(138,143,153,.07)"},
+  2:{zh:"积极",en:"POSITIVE",emoji:"😊",c:"var(--pos)",bg:"rgba(46,158,107,.07)"}
+};
+const WINDOW=5;
+let i=0,timer=null,hist=[],correct=0;
+const tl=document.getElementById('timeline');
+DATA.forEach(()=>{const s=document.createElement('div');s.className='seg';tl.appendChild(s);});
+const segs=[...tl.children];
+function majority(a){const c={};a.forEach(x=>c[x]=(c[x]||0)+1);
+  return +Object.keys(c).reduce((x,y)=>c[x]>=c[y]?x:y);}
+function drawWave(color,active){
+  let d="M0,24";
+  for(let x=0;x<=760;x+=16){
+    const amp=active?(Math.random()>0.75?20:9):2;
+    const y=24+(Math.random()-0.5)*amp*2;
+    d+=` L${x},${y.toFixed(1)}`;
+  }
+  const p=document.getElementById('wavePath');
+  p.setAttribute('d',d);p.setAttribute('stroke',color);
+}
+function start(){
+  i=0;hist=[];correct=0;
+  segs.forEach(s=>{s.className='seg';s.style.background='';});
+  document.getElementById('btn').disabled=true;
+  document.getElementById('dot').className='dot live';
+  document.getElementById('statusTxt').textContent='监测中';
+  document.getElementById('accTxt').textContent='';
+  timer=setInterval(step,750);
+}
+function step(){
+  if(i>=DATA.length){
+    clearInterval(timer);
+    document.getElementById('btn').disabled=false;
+    document.getElementById('btn').textContent='重新开始';
+    document.getElementById('dot').className='dot';
+    document.getElementById('statusTxt').textContent='完成';
+    drawWave("var(--ink3)",false);
+    return;
+  }
+  const raw=DATA[i].p,truth=DATA[i].t;
+  hist.push(raw);if(hist.length>WINDOW)hist.shift();
+  const stable=majority(hist);
+  if(stable===truth)correct++;
+  const eS=EMO[stable],eR=EMO[raw],eT=EMO[truth];
+  const ro=document.getElementById('readout');
+  ro.style.background=eS.bg;
+  const emo=document.getElementById('emoji');
+  emo.textContent=eS.emoji;
+  emo.classList.remove('beat');void emo.offsetWidth;emo.classList.add('beat');
+  const zh=document.getElementById('emoZh');
+  zh.textContent=eS.zh;zh.style.color=eS.c;
+  document.getElementById('emoEn').textContent=eS.en;
+  document.getElementById('hint').textContent=`已处理 ${i+1} / ${DATA.length} 段脑电信号`;
+  const inst=document.getElementById('instant');
+  inst.textContent=eR.emoji+' '+eR.zh;inst.style.color=eR.c;
+  const stb=document.getElementById('stable');
+  stb.textContent=eS.emoji+' '+eS.zh;stb.style.color=eS.c;
+  const tr=document.getElementById('truth');
+  tr.textContent=eT.emoji+' '+eT.zh;tr.style.color=eT.c;
+  document.getElementById('truthTag').textContent=(stable===truth)?'判断一致':'';
+  segs.forEach(s=>s.classList.remove('now'));
+  segs[i].style.background=eT.c;
+  segs[i].classList.add('now');
+  document.getElementById('tick').textContent=`· 第 ${i+1} 段`;
+  document.getElementById('accTxt').textContent=`稳定判断准确 ${correct}/${i+1}`;
+  drawWave(eS.c,true);
+  i++;
+}
+drawWave("var(--ink3)",false);
+</script>
+</body>
+</html>

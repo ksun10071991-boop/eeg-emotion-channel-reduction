@@ -1,0 +1,11 @@
+rank,channel_1,channel_2,accuracy,type
+1,F8,T7,0.7473,frontal+temporal
+2,F4,T8,0.7456,frontal+temporal
+3,F4,T7,0.7408,frontal+temporal
+4,FP1,T7,0.7377,frontal+temporal
+5,T7,T8,0.7340,temporal+temporal
+6,T7,FT7,0.7331,temporal
+7,AF3,T7,0.7323,frontal+temporal
+8,T7,FT8,0.7323,temporal
+9,FP2,T8,0.7310,frontal+temporal
+10,F4,FT8,0.7294,frontal+temporal
